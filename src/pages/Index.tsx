@@ -15,12 +15,24 @@ const NAV_ITEMS = [
 ];
 
 const SOFAS = [
-  { name: "НОРД", desc: "Скандинавский минимализм", price: "от 89 900 ₽", tag: "ХИТ" },
-  { name: "ВЕЛЬВЕТ", desc: "Роскошный бархат", price: "от 124 000 ₽", tag: "НОВИНКА" },
-  { name: "ЛОФТ", desc: "Урбан-стиль", price: "от 76 500 ₽", tag: "" },
-  { name: "КЛАССИК", desc: "Вечная элегантность", price: "от 98 000 ₽", tag: "" },
-  { name: "МОДЕРН", desc: "Трансформер", price: "от 112 000 ₽", tag: "АКЦИЯ" },
-  { name: "УЮТ", desc: "Семейный формат", price: "от 67 000 ₽", tag: "" },
+  {
+    name: "РОКСЕН",
+    desc: "Угловой диван с мягкими округлыми формами и велюровой обивкой цвета терракота. Просторный шезлонг, глубокие подушки — создан для тех, кто ценит стиль и комфорт.",
+    price: "111 500 ₽",
+    tag: "ХИТ",
+    img: "https://cdn.poehali.dev/projects/79b2cb14-d377-48e0-9127-e0e2cc0c80a4/bucket/e2812f14-e568-4f29-aba1-5e929250d68d.jpg",
+  },
+  {
+    name: "МАНЧЕСТЕР",
+    desc: "Угловой диван в сине-бежевой гамме с фигурной стёжкой сидений. Благородный стальной синий велюр в сочетании с бежевыми подлокотниками — классика в современном прочтении.",
+    price: "103 700 ₽",
+    tag: "НОВИНКА",
+    img: "https://cdn.poehali.dev/projects/79b2cb14-d377-48e0-9127-e0e2cc0c80a4/bucket/584e97ff-e699-4f6d-8efa-13260d83eb64.jpg",
+  },
+  { name: "ЛОФТ", desc: "Урбан-стиль для смелых интерьеров", price: "от 76 500 ₽", tag: "", img: "" },
+  { name: "КЛАССИК", desc: "Вечная элегантность на каждый день", price: "от 98 000 ₽", tag: "", img: "" },
+  { name: "МОДЕРН", desc: "Диван-трансформер: раскладывается за 10 секунд", price: "от 112 000 ₽", tag: "АКЦИЯ", img: "" },
+  { name: "УЮТ", desc: "Семейный формат с вместительным бельевым ящиком", price: "от 67 000 ₽", tag: "", img: "" },
 ];
 
 const PORTFOLIO_ITEMS = [
@@ -346,7 +358,7 @@ export default function Index() {
               >
                 <div
                   className="h-52 bg-cover bg-center relative overflow-hidden"
-                  style={{ backgroundImage: `url(${CATALOG_IMG})`, filter: `hue-rotate(${i * 18}deg) brightness(${0.45 + i * 0.06})` }}
+                  style={{ backgroundImage: `url(${sofa.img || CATALOG_IMG})`, filter: sofa.img ? "brightness(0.92)" : `hue-rotate(${i * 18}deg) brightness(${0.45 + i * 0.06})` }}
                 >
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: "rgba(255,92,26,0.18)" }} />
                   {sofa.tag && (
