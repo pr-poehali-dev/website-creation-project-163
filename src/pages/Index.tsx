@@ -17,10 +17,14 @@ const NAV_ITEMS = [
 const SOFAS = [
   {
     name: "РОКСЕН",
-    desc: "Угловой диван с мягкими округлыми формами и велюровой обивкой цвета терракота. Просторный шезлонг, глубокие подушки — создан для тех, кто ценит стиль и комфорт.",
+    desc: "Угловой диван с мягкими округлыми формами и велюровой обивкой. Доступен в терракотовом и бирюзовом исполнении. Просторный шезлонг, глубокие подушки — создан для тех, кто ценит стиль и комфорт.",
     price: "111 500 ₽",
     tag: "ХИТ",
     img: "https://cdn.poehali.dev/projects/79b2cb14-d377-48e0-9127-e0e2cc0c80a4/bucket/e2812f14-e568-4f29-aba1-5e929250d68d.jpg",
+    images: [
+      "https://cdn.poehali.dev/projects/79b2cb14-d377-48e0-9127-e0e2cc0c80a4/bucket/e2812f14-e568-4f29-aba1-5e929250d68d.jpg",
+      "https://cdn.poehali.dev/projects/79b2cb14-d377-48e0-9127-e0e2cc0c80a4/bucket/8a08ef98-3514-4ae5-b8ad-f9c0115241c0.jpg",
+    ],
   },
   {
     name: "МАНЧЕСТЕР",
@@ -28,11 +32,12 @@ const SOFAS = [
     price: "103 700 ₽",
     tag: "НОВИНКА",
     img: "https://cdn.poehali.dev/projects/79b2cb14-d377-48e0-9127-e0e2cc0c80a4/bucket/584e97ff-e699-4f6d-8efa-13260d83eb64.jpg",
+    images: ["https://cdn.poehali.dev/projects/79b2cb14-d377-48e0-9127-e0e2cc0c80a4/bucket/584e97ff-e699-4f6d-8efa-13260d83eb64.jpg"],
   },
-  { name: "ЛОФТ", desc: "Урбан-стиль для смелых интерьеров", price: "от 76 500 ₽", tag: "", img: "" },
-  { name: "КЛАССИК", desc: "Вечная элегантность на каждый день", price: "от 98 000 ₽", tag: "", img: "" },
-  { name: "МОДЕРН", desc: "Диван-трансформер: раскладывается за 10 секунд", price: "от 112 000 ₽", tag: "АКЦИЯ", img: "" },
-  { name: "УЮТ", desc: "Семейный формат с вместительным бельевым ящиком", price: "от 67 000 ₽", tag: "", img: "" },
+  { name: "ЛОФТ", desc: "Урбан-стиль для смелых интерьеров", price: "от 76 500 ₽", tag: "", img: "", images: [] as string[] },
+  { name: "КЛАССИК", desc: "Вечная элегантность на каждый день", price: "от 98 000 ₽", tag: "", img: "", images: [] as string[] },
+  { name: "МОДЕРН", desc: "Диван-трансформер: раскладывается за 10 секунд", price: "от 112 000 ₽", tag: "АКЦИЯ", img: "", images: [] as string[] },
+  { name: "УЮТ", desc: "Семейный формат с вместительным бельевым ящиком", price: "от 67 000 ₽", tag: "", img: "", images: [] as string[] },
 ];
 
 const PORTFOLIO_ITEMS = [
@@ -171,6 +176,107 @@ function ChatWidget() {
       >
         <Icon name={open ? "X" : "MessageCircle"} size={24} fallback="MessageCircle" />
       </button>
+    </div>
+  );
+}
+
+function SofaCard({ sofa, index, fallback }: { sofa: typeof SOFAS[number]; index: number; fallback: string }) {
+  const slides = sofa.images && sofa.images.length > 0 ? sofa.images : [sofa.img || fallback];
+  const [current, setCurrent] = useState(0);
+  const [hovered, setHovered] = useState(false);
+
+  useEffect(() => {
+    if (!hovered || slides.length < 2) return;
+    const timer = setInterval(() => setCurrent((c) => (c + 1) % slides.length), 2200);
+    return () => clearInterval(timer);
+  }, [hovered, slides.length]);
+
+  const go = (dir: 1 | -1) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrent((c) => (c + dir + slides.length) % slides.length);
+  };
+
+  const isReal = !!sofa.img;
+
+  return (
+    <div
+      className="group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
+      style={{ background: "#1A1A20", border: "1px solid rgba(255,92,26,0.07)" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div className="h-52 relative overflow-hidden">
+        {slides.map((src, i) => (
+          <div
+            key={i}
+            className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out"
+            style={{
+              backgroundImage: `url(${src})`,
+              filter: isReal ? "brightness(0.95)" : `hue-rotate(${index * 18}deg) brightness(${0.45 + index * 0.06})`,
+              opacity: i === current ? 1 : 0,
+              transform: i === current ? "scale(1)" : "scale(1.05)",
+            }}
+          />
+        ))}
+
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+          style={{ background: "linear-gradient(to top, rgba(13,13,15,0.55), transparent 50%)" }}
+        />
+
+        {sofa.tag && (
+          <div className="absolute top-3 left-3 px-2 py-1 rounded font-oswald text-xs tracking-widest z-10" style={{ background: "#FF5C1A", color: "#fff" }}>
+            {sofa.tag}
+          </div>
+        )}
+
+        {slides.length > 1 && (
+          <>
+            <button
+              onClick={go(-1)}
+              aria-label="Предыдущее фото"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
+              style={{ background: "rgba(13,13,15,0.7)", color: "#F5EDD6", backdropFilter: "blur(8px)" }}
+            >
+              <Icon name="ChevronLeft" size={18} />
+            </button>
+            <button
+              onClick={go(1)}
+              aria-label="Следующее фото"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
+              style={{ background: "rgba(13,13,15,0.7)", color: "#F5EDD6", backdropFilter: "blur(8px)" }}
+            >
+              <Icon name="ChevronRight" size={18} />
+            </button>
+
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
+                  aria-label={`Фото ${i + 1}`}
+                  className="h-1.5 rounded-full transition-all duration-500"
+                  style={{
+                    width: i === current ? 22 : 6,
+                    background: i === current ? "#FF5C1A" : "rgba(245,237,214,0.5)",
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="p-5">
+        <h3 className="font-oswald font-bold text-xl tracking-widest mb-1" style={{ color: "#F5EDD6" }}>{sofa.name}</h3>
+        <p className="text-sm mb-4" style={{ color: "#6B6B7B" }}>{sofa.desc}</p>
+        <div className="flex items-center justify-between">
+          <span className="font-oswald font-semibold" style={{ color: "#FF5C1A" }}>{sofa.price}</span>
+          <button className="flex items-center gap-1 text-xs font-oswald tracking-wider transition-all hover:gap-2 hover:text-orange-400" style={{ color: "#6B6B7B" }}>
+            Подробнее <Icon name="ArrowRight" size={12} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -351,33 +457,7 @@ export default function Index() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {SOFAS.map((sofa, i) => (
-              <div
-                key={i}
-                className="group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
-                style={{ background: "#1A1A20", border: "1px solid rgba(255,92,26,0.07)" }}
-              >
-                <div
-                  className="h-52 bg-cover bg-center relative overflow-hidden"
-                  style={{ backgroundImage: `url(${sofa.img || CATALOG_IMG})`, filter: sofa.img ? "brightness(0.92)" : `hue-rotate(${i * 18}deg) brightness(${0.45 + i * 0.06})` }}
-                >
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: "rgba(255,92,26,0.18)" }} />
-                  {sofa.tag && (
-                    <div className="absolute top-3 left-3 px-2 py-1 rounded font-oswald text-xs tracking-widest" style={{ background: "#FF5C1A", color: "#fff" }}>
-                      {sofa.tag}
-                    </div>
-                  )}
-                </div>
-                <div className="p-5">
-                  <h3 className="font-oswald font-bold text-xl tracking-widest mb-1" style={{ color: "#F5EDD6" }}>{sofa.name}</h3>
-                  <p className="text-sm mb-4" style={{ color: "#6B6B7B" }}>{sofa.desc}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="font-oswald font-semibold" style={{ color: "#FF5C1A" }}>{sofa.price}</span>
-                    <button className="flex items-center gap-1 text-xs font-oswald tracking-wider transition-colors hover:text-orange-400" style={{ color: "#6B6B7B" }}>
-                      Подробнее <Icon name="ArrowRight" size={12} />
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <SofaCard key={i} sofa={sofa} index={i} fallback={CATALOG_IMG} />
             ))}
           </div>
         </div>
