@@ -184,12 +184,28 @@ function SofaCard({ sofa, index, fallback }: { sofa: typeof SOFAS[number]; index
   const slides = sofa.images && sofa.images.length > 0 ? sofa.images : [sofa.img || fallback];
   const [current, setCurrent] = useState(0);
   const [hovered, setHovered] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
 
   useEffect(() => {
     if (!hovered || slides.length < 2) return;
     const timer = setInterval(() => setCurrent((c) => (c + 1) % slides.length), 2200);
     return () => clearInterval(timer);
   }, [hovered, slides.length]);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(false);
+      if (e.key === "ArrowRight") setCurrent((c) => (c + 1) % slides.length);
+      if (e.key === "ArrowLeft") setCurrent((c) => (c - 1 + slides.length) % slides.length);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [lightbox, slides.length]);
 
   const go = (dir: 1 | -1) => (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -205,7 +221,11 @@ function SofaCard({ sofa, index, fallback }: { sofa: typeof SOFAS[number]; index
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div className="h-52 relative overflow-hidden">
+      <div
+        className="h-52 relative overflow-hidden"
+        onDoubleClick={(e) => { e.stopPropagation(); if (isReal) setLightbox(true); }}
+        title={isReal ? "Двойной клик — увеличить" : undefined}
+      >
         {slides.map((src, i) => (
           <div
             key={i}
@@ -223,6 +243,15 @@ function SofaCard({ sofa, index, fallback }: { sofa: typeof SOFAS[number]; index
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
           style={{ background: "linear-gradient(to top, rgba(13,13,15,0.55), transparent 50%)" }}
         />
+
+        {isReal && (
+          <div
+            className="absolute top-3 right-3 px-2.5 py-1 rounded-full font-oswald text-[10px] tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none flex items-center gap-1 z-10"
+            style={{ background: "rgba(13,13,15,0.7)", color: "#F5EDD6", backdropFilter: "blur(8px)" }}
+          >
+            <Icon name="ZoomIn" size={12} /> 2× клик
+          </div>
+        )}
 
         {sofa.tag && (
           <div className="absolute top-3 left-3 px-2 py-1 rounded font-oswald text-xs tracking-widest z-10" style={{ background: "#FF5C1A", color: "#fff" }}>
@@ -277,6 +306,84 @@ function SofaCard({ sofa, index, fallback }: { sofa: typeof SOFAS[number]; index
           </button>
         </div>
       </div>
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8"
+          style={{ background: "rgba(8,8,10,0.96)", backdropFilter: "blur(12px)", animation: "fade-in 0.3s ease-out" }}
+          onClick={() => setLightbox(false)}
+          onDoubleClick={() => setLightbox(false)}
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setLightbox(false); }}
+            aria-label="Закрыть"
+            className="absolute top-5 right-5 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 hover:rotate-90 z-10"
+            style={{ background: "rgba(255,92,26,0.15)", color: "#F5EDD6", border: "1px solid rgba(255,92,26,0.4)" }}
+          >
+            <Icon name="X" size={22} />
+          </button>
+
+          <div className="absolute top-5 left-5 z-10">
+            <p className="font-oswald text-xs tracking-widest mb-1" style={{ color: "#FF5C1A" }}>{String(index + 1).padStart(2, "0")} / МОДЕЛЬ</p>
+            <h3 className="font-oswald font-bold text-2xl tracking-widest" style={{ color: "#F5EDD6" }}>{sofa.name}</h3>
+          </div>
+
+          <div
+            className="relative w-full max-w-6xl max-h-[85vh] flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              key={current}
+              src={slides[current]}
+              alt={sofa.name}
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+              style={{ animation: "zoom-in 0.45s cubic-bezier(0.22, 1, 0.36, 1)" }}
+            />
+
+            {slides.length > 1 && (
+              <>
+                <button
+                  onClick={go(-1)}
+                  aria-label="Предыдущее"
+                  className="absolute left-4 sm:-left-16 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  style={{ background: "rgba(255,92,26,0.15)", color: "#F5EDD6", border: "1px solid rgba(255,92,26,0.4)", backdropFilter: "blur(8px)" }}
+                >
+                  <Icon name="ChevronLeft" size={22} />
+                </button>
+                <button
+                  onClick={go(1)}
+                  aria-label="Следующее"
+                  className="absolute right-4 sm:-right-16 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  style={{ background: "rgba(255,92,26,0.15)", color: "#F5EDD6", border: "1px solid rgba(255,92,26,0.4)", backdropFilter: "blur(8px)" }}
+                >
+                  <Icon name="ChevronRight" size={22} />
+                </button>
+              </>
+            )}
+          </div>
+
+          {slides.length > 1 && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10" onClick={(e) => e.stopPropagation()}>
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrent(i)}
+                  aria-label={`Фото ${i + 1}`}
+                  className="h-2 rounded-full transition-all duration-500"
+                  style={{
+                    width: i === current ? 28 : 8,
+                    background: i === current ? "#FF5C1A" : "rgba(245,237,214,0.4)",
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          <p className="absolute bottom-2 right-5 text-xs font-oswald tracking-widest" style={{ color: "#6B6B7B" }}>
+            ESC или клик — закрыть
+          </p>
+        </div>
+      )}
     </div>
   );
 }
